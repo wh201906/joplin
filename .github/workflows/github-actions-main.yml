@@ -103,6 +103,12 @@ jobs:
         run: |
           yarn install && cd packages/app-desktop && yarn run dist --publish=never
 
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: build-log
+          path: /tmp/xfs-*/build.log
+
   ServerDockerImage:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -142,3 +148,8 @@ jobs:
           yarn install
           yarn run buildServerDocker --tag-name server-v0.0.0 --repository joplin/server
           
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: build-log
+          path: /tmp/xfs-*/build.log
