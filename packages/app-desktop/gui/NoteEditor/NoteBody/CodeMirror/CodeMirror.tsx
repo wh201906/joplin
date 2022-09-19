@@ -78,7 +78,7 @@ function CodeMirror(props: NoteBodyEditorProps, ref: any) {
 		if (!editorRef.current) return;
 
 		if (editorRef.current.somethingSelected()) {
-			editorRef.current.wrapSelections(string1, string2);
+			editorRef.current.wrapSelections();
 		} else {
 			editorRef.current.wrapSelections(string1 + defaultText, string2);
 
