@@ -79,7 +79,7 @@ function CodeMirror(props: NoteBodyEditorProps, ref: any) {
 
 		if (editorRef.current.somethingSelected()) {
 			editorRef.current.wrapSelections();
-		} else {
+		} el
 			editorRef.current.wrapSelections(string1 + defaultText, string2);
 
 			// Now select the default text so the user can replace it
