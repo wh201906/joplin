@@ -29,6 +29,8 @@ class Application extends BaseApplication {
 		this.showStackTraces_ = false;
 		this.gui_ = null;
 		this.cache_ = new Cache();
+		this.aboutToExit_ = false;
+		this.pendingOutputCount_ = 0;
 	}
 
 	gui() {
@@ -278,7 +280,12 @@ class Application extends BaseApplication {
 			showConsole: () => {},
 			maximizeConsole: () => {},
 			stdout: text => {
-				console.info(text);
+				this.pendingOutputCount_++;
+				process.stdout.write(text, ()=>{
+					this.pendingOutputCount_--;
+					if(this.pendingOutputCount_ <= 0 && this.aboutToExit_) {
+						process.exit(0);
+			}});
 			},
 			fullScreen: () => {},
 			exit: () => {},
@@ -448,7 +455,11 @@ class Application extends BaseApplication {
 
 			// Need to call exit() explicitly, otherwise Node wait for any timeout to complete
 			// https://stackoverflow.com/questions/18050095
-			process.exit(0);
+			if(this.pendingOutputCount_ <= 0) {
+				process.exit(0);
+			} else {
+				process.aboutToExit_ = true;
+			}
 		} else {
 			// Otherwise open the GUI
 			const keymap = await this.loadKeymaps();
