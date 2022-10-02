@@ -281,11 +281,14 @@ class Application extends BaseApplication {
 			maximizeConsole: () => {},
 			stdout: text => {
 				this.pendingOutputCount_++;
-				process.stdout.write(text, ()=>{
+				const isWriteSynced = process.stdout.write(text, ()=>{
 					this.pendingOutputCount_--;
 					if(this.pendingOutputCount_ <= 0 && this.aboutToExit_) {
 						process.exit(0);
 			}});
+				if (isWriteSynced) {
+					this.pendingOutputCount_--;
+				}
 			},
 			fullScreen: () => {},
 			exit: () => {},
