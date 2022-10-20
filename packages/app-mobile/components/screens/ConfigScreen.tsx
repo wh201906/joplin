@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
-import Slider from '@react-native-community/slider';
+import InputSpinner from "react-native-input-spinner";
 const React = require('react');
 const { Platform, Linking, View, Switch, StyleSheet, ScrollView, Text, Button, TouchableOpacity, TextInput, Alert, PermissionsAndroid, TouchableNativeFeedback } = require('react-native');
 import Setting, { AppType } from '@joplin/lib/models/Setting';
@@ -506,7 +506,15 @@ class ConfigScreenComponent extends BaseScreenComponent {
 					</Text>
 					<View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flex: 1 }}>
 						<Text style={this.styles().sliderUnits}>{unitLabel}</Text>
-						<Slider key="control" style={{ flex: 1 }} step={md.step} minimumValue={md.minimum} maximumValue={md.maximum} value={value} onValueChange={value => updateSettingValue(key, value)} />
+						<InputSpinner
+							key="control"
+							type="int"
+							value={value}
+							onChange={value => updateSettingValue(key, value)}
+							min={md.minimum}
+							max={md.maximum}
+							step={md.step}
+						/>
 					</View>
 				</View>
 			);
