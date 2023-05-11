@@ -1,8 +1,8 @@
 name: Joplin Continuous Integration
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 jobs:
   pre_job:
-    if: github.repository == 'laurent22/joplin'
+
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
@@ -15,11 +15,11 @@ jobs:
   Main:
     needs: pre_job
     # We always process server or desktop release tags, because they also publish the release
-    if: github.repository == 'laurent22/joplin' && (needs.pre_job.outputs.should_skip != 'true' || startsWith(github.ref, 'refs/tags/server-v') || startsWith(github.ref, 'refs/tags/v'))
+
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-2019]
+        os: [ubuntu-latest, windows-2019]
     steps:
 
       # Trying to fix random networking issues on Windows
@@ -130,6 +130,16 @@ jobs:
           SERVER_TAG_PREFIX: server
         run: |
           yarn install && cd packages/app-desktop && yarn run dist --publish=never
+          
+      - name: upload
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v3.1.2
+        with:
+    # Artifact name
+
+    # A file, directory or wildcard pattern that describes what to upload
+          path: ./**/*.exe
+    # The desired behavior if no files are found using the provided path.
 
   ServerDockerImage:
     needs: pre_job
