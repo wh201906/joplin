@@ -11786,6 +11786,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"codemirror@patch:codemirror@npm%3A5.65.9#./.yarn/patches/codemirror-npm-5.65.9-95f0ac2341.patch::locator=root%40workspace%3A.":
+  version: 5.65.9
+  resolution: "codemirror@patch:codemirror@npm%3A5.65.9#./.yarn/patches/codemirror-npm-5.65.9-95f0ac2341.patch::version=5.65.9&hash=0f954a&locator=root%40workspace%3A."
+  checksum: 9d8f4267cdc3a3b1b82f934c76367c9b69a211aaee38d4490672ae54368672410f723994e66c2e75cebe62bd6b59f9d6d7679ddb4b0a7d3682ec89cb3f2ca5d4
+  languageName: node
+  linkType: hard
+
 "collect-v8-coverage@npm:^1.0.0":
   version: 1.0.1
   resolution: "collect-v8-coverage@npm:1.0.1"
