@@ -138,7 +138,7 @@ jobs:
     # Artifact name
 
     # A file, directory or wildcard pattern that describes what to upload
-          path: ./**/*.exe
+          path: ./dist/**/*.exe
     # The desired behavior if no files are found using the provided path.
 
   ServerDockerImage:
