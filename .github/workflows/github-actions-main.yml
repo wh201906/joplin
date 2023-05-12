@@ -138,7 +138,7 @@ jobs:
     # Artifact name
 
     # A file, directory or wildcard pattern that describes what to upload
-          path: ./dist/**/*.exe
+          path: D:\a\joplin\joplin\packages\app-desktop\dist\**\*.exe
     # The desired behavior if no files are found using the provided path.
 
   ServerDockerImage:
