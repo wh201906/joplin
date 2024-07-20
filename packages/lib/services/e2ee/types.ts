@@ -30,7 +30,9 @@ export interface Crypto {
 	getCiphers(): string[];
 	getHashes(): string[];
 	randomBytes(size: number): Promise<CryptoBuffer>;
-	pbkdf2Raw(password: string, salt: CryptoBuffer, iterations: number, keylen: number, digest: string): Promise<CryptoBuffer>;
+	pbkdf2Raw(password: string, salt: Buffer, iterations: number, keylen: number, digest: string): Promise<CryptoBuffer>;
+	encryptRaw(data: Buffer, algorithm: string, key: Buffer, iv: CryptoBuffer | null, authTagLength: number, associatedData: Buffer | null): Buffer;
+	decryptRaw(data: Buffer, algorithm: string, key: Buffer, iv: Buffer, authTagLength: number, associatedData: Buffer | null): Buffer;
 }
 
 export interface CryptoBuffer extends Uint8Array {
