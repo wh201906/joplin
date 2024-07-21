@@ -1,4 +1,4 @@
-import { Crypto, CryptoBuffer } from './types';
+import { Crypto, CryptoBuffer, EncryptionResult } from './types';
 import { promisify } from 'util';
 import { _ } from '../../locale';
 import {
@@ -11,20 +11,20 @@ import {
 
 const crypto: Crypto = {
 
-	getCiphers: (): string[] => {
+	getCiphers: () => {
 		return nodeGetCiphers();
 	},
 
-	getHashes: (): string[] => {
+	getHashes: () => {
 		return nodeGetHashes();
 	},
 
-	randomBytes: async (size: number): Promise<Buffer> => {
+	randomBytes: async (size: number) => {
 		const randomBytesAsync = promisify(nodeRandomBytes);
 		return randomBytesAsync(size);
 	},
 
-	pbkdf2Raw: async (password: string, salt: Buffer, iterations: number, keylen: number, digest: string): Promise<Buffer> => {
+	pbkdf2Raw: async (password: string, salt: CryptoBuffer, iterations: number, keylen: number, digest: string) => {
 		const digestMap: { [key: string]: string } = {
 			'sha-1': 'sha1',
 			'sha-224': 'sha224',
@@ -39,12 +39,9 @@ const crypto: Crypto = {
 		return pbkdf2Async(password, salt, iterations, keylen, digestAlgorithm);
 	},
 
-	encryptRaw: (data: Buffer, algorithm: string, key: Buffer, iv: CryptoBuffer | null, authTagLength: number, associatedData: Buffer | null): Buffer => {
+	encryptRaw: (data: CryptoBuffer, algorithm: string, key: CryptoBuffer, iv: CryptoBuffer | null, authTagLength: number, associatedData: Buffer | null) => {
 
 		algorithm = algorithm.toLowerCase();
-		if (iv === null) {
-			iv = nodeRandomBytes(12);
-		}
 		if (associatedData === null) {
 			associatedData = Buffer.alloc(0);
 		}
@@ -52,8 +49,10 @@ const crypto: Crypto = {
 		let cipher = null;
 		if (algorithm.includes('gcm')) {
 			cipher = createCipheriv(algorithm, key, iv, { authTagLength: authTagLength } as CipherGCMOptions) as CipherGCM;
+			iv = iv || nodeRandomBytes(12);
 		} else if (algorithm.includes('ccm')) {
 			cipher = createCipheriv(algorithm, key, iv, { authTagLength: authTagLength } as CipherCCMOptions) as CipherCCM;
+			iv = iv || nodeRandomBytes(13);
 		} else {
 			throw new Error(_('Unknown cipher algorithm: %s', algorithm));
 		}
@@ -66,7 +65,7 @@ const crypto: Crypto = {
 		return Buffer.concat([encryptedData, authTag]);
 	},
 
-	decryptRaw: (data: Buffer, algorithm: string, key: Buffer, iv: Buffer, authTagLength: number, associatedData: Buffer | null): Buffer => {
+	decryptRaw: (data: CryptoBuffer, algorithm: string, key: CryptoBuffer, iv: CryptoBuffer, authTagLength: number, associatedData: Buffer | null) => {
 
 		algorithm = algorithm.toLowerCase();
 		if (associatedData === null) {
@@ -95,6 +94,44 @@ const crypto: Crypto = {
 		}
 
 		return decryptedData;
+	},
+
+	encrypt: async (password: string, iterationCount: number, salt: CryptoBuffer | null, data: CryptoBuffer) => {
+
+		const result: EncryptionResult = {
+			algo: 'aes-256-gcm', // algorithm
+			ts: 16, // authTagLength: 16 bytes (128 bits)
+			hash: 'SHA-512', // digestAlgorithm
+			iter: iterationCount,
+			salt: '',
+			iv: '',
+			ct: '', // cipherText
+		};
+		salt = salt || await crypto.randomBytes(32); // 256 bits
+		const iv = await crypto.randomBytes(12); // 96 bits
+
+		const key = await crypto.pbkdf2Raw(password, salt, iterationCount, 32, result.hash);
+		const encrypted = crypto.encryptRaw(data, result.algo, key, iv, result.ts, null);
+
+		result.salt = salt.toString('base64');
+		result.iv = iv.toString('base64');
+		result.ct = encrypted.toString('base64');
+
+		return result;
+	},
+
+	decrypt: async (password: string, data: EncryptionResult) => {
+		const salt = Buffer.from(data.salt, 'base64');
+		const iv = Buffer.from(data.iv, 'base64');
+
+		const key = await crypto.pbkdf2Raw(password, salt, data.iter, 32, data.hash);
+		const decrypted = crypto.decryptRaw(Buffer.from(data.ct, 'base64'), data.algo, key, iv, data.ts, null);
+
+		return decrypted;
+	},
+
+	encryptString: async (password: string, iterationCount: number, salt: CryptoBuffer | null, data: string, encoding: BufferEncoding) => {
+		return crypto.encrypt(password, iterationCount, salt, Buffer.from(data, encoding));
 	},
 };
 

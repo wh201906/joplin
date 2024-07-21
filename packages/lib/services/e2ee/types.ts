@@ -27,14 +27,30 @@ export interface RSA {
 }
 
 export interface Crypto {
+	// low level functions
 	getCiphers(): string[];
 	getHashes(): string[];
 	randomBytes(size: number): Promise<CryptoBuffer>;
-	pbkdf2Raw(password: string, salt: Buffer, iterations: number, keylen: number, digest: string): Promise<CryptoBuffer>;
-	encryptRaw(data: Buffer, algorithm: string, key: Buffer, iv: CryptoBuffer | null, authTagLength: number, associatedData: Buffer | null): Buffer;
-	decryptRaw(data: Buffer, algorithm: string, key: Buffer, iv: Buffer, authTagLength: number, associatedData: Buffer | null): Buffer;
+	pbkdf2Raw(password: string, salt: CryptoBuffer, iterations: number, keylen: number, digest: string): Promise<CryptoBuffer>;
+	encryptRaw(data: CryptoBuffer, algorithm: string, key: CryptoBuffer, iv: CryptoBuffer | null, authTagLength: number, associatedData: Buffer | null): Buffer;
+	decryptRaw(data: CryptoBuffer, algorithm: string, key: CryptoBuffer, iv: CryptoBuffer, authTagLength: number, associatedData: Buffer | null): Buffer;
+
+	// convenient functions
+	encrypt(password: string, iterationCount: number, salt: CryptoBuffer | null, data: CryptoBuffer): Promise<EncryptionResult>;
+	decrypt(password: string, data: EncryptionResult): Promise<Buffer>;
+	encryptString(password: string, iterationCount: number, salt: CryptoBuffer | null, data: string, encoding: BufferEncoding): Promise<EncryptionResult>;
 }
 
 export interface CryptoBuffer extends Uint8Array {
 	toString(encoding?: BufferEncoding, start?: number, end?: number): string;
+}
+
+export interface EncryptionResult {
+	algo: string; // algorithm
+	ts: number; // authTagLength
+	hash: string; // digestAlgorithm, type to be fixed
+	iter: number;
+	salt: string;
+	iv: string;
+	ct: string; // cipherText
 }
