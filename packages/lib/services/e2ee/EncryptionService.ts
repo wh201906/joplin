@@ -42,6 +42,9 @@ export enum EncryptionMethod {
 	SJCL1a = 5,
 	Custom = 6,
 	SJCL1b = 7,
+	KeyV1 = 8,
+	FileV1 = 9,
+	StringV1 = 10,
 }
 
 export interface EncryptOptions {
@@ -278,6 +281,7 @@ export default class EncryptionService {
 		if (!key) throw new Error('Encryption key is required');
 
 		const sjcl = shim.sjclModule;
+		const crypto = shim.crypto;
 
 		const handlers: Record<EncryptionMethod, ()=> string> = {
 			// 2020-01-23: Deprecated and no longer secure due to the use og OCB2 mode - do not use.
@@ -394,6 +398,18 @@ export default class EncryptionService {
 				}
 			},
 
+			[EncryptionMethod.KeyV1]: () => {
+				return JSON.stringify(crypto.encryptString(key, 220000, null, plainText, 'hex'));
+			},
+
+			[EncryptionMethod.FileV1]: () => {
+				return JSON.stringify(crypto.encryptString(key, 200, null, plainText, 'base64'));
+			},
+
+			[EncryptionMethod.StringV1]: () => {
+				return JSON.stringify(crypto.encryptString(key, 200, null, plainText, 'utf8'));
+			},
+
 			[EncryptionMethod.Custom]: () => {
 				// This is handled elsewhere but as a sanity check, throw an exception
 				throw new Error('Custom encryption method is not supported here');
@@ -408,19 +424,28 @@ export default class EncryptionService {
 		if (!key) throw new Error('Encryption key is required');
 
 		const sjcl = shim.sjclModule;
-		if (!this.isValidEncryptionMethod(method)) throw new Error(`Unknown decryption method: ${method}`);
+		const crypto = shim.crypto;
+		if (!this.isValidEncryptionMethod(method)) {
+			throw new Error(`Unknown decryption method: ${method}`);
+		} else if (method === EncryptionMethod.KeyV1) {
+			return (await crypto.decrypt(key, JSON.parse(cipherText))).toString('hex');
+		} else if (method === EncryptionMethod.FileV1) {
+			return (await crypto.decrypt(key, JSON.parse(cipherText))).toString('base64');
+		} else if (method === EncryptionMethod.StringV1) {
+			return (await crypto.decrypt(key, JSON.parse(cipherText))).toString('utf8');
+		} else {
+			try {
+				const output = sjcl.json.decrypt(key, cipherText);
 
-		try {
-			const output = sjcl.json.decrypt(key, cipherText);
-
-			if (method === EncryptionMethod.SJCL1a || method === EncryptionMethod.SJCL1b) {
-				return unescape(output);
-			} else {
-				return output;
+				if (method === EncryptionMethod.SJCL1a || method === EncryptionMethod.SJCL1b) {
+					return unescape(output);
+				} else {
+					return output;
+				}
+			} catch (error) {
+				// SJCL returns a string as error which means stack trace is missing so convert to an error object here
+				throw new Error(error.message);
 			}
-		} catch (error) {
-			// SJCL returns a string as error which means stack trace is missing so convert to an error object here
-			throw new Error(error.message);
 		}
 	}
 
@@ -681,7 +706,7 @@ export default class EncryptionService {
 	}
 
 	public isValidEncryptionMethod(method: EncryptionMethod) {
-		return [EncryptionMethod.SJCL, EncryptionMethod.SJCL1a, EncryptionMethod.SJCL1b, EncryptionMethod.SJCL2, EncryptionMethod.SJCL3, EncryptionMethod.SJCL4].indexOf(method) >= 0;
+		return [EncryptionMethod.SJCL, EncryptionMethod.SJCL1a, EncryptionMethod.SJCL1b, EncryptionMethod.SJCL2, EncryptionMethod.SJCL3, EncryptionMethod.SJCL4, EncryptionMethod.KeyV1, EncryptionMethod.FileV1, EncryptionMethod.StringV1].indexOf(method) >= 0;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Old code before rule was applied
