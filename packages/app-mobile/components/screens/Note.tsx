@@ -9,7 +9,7 @@ import NoteEditor from '../NoteEditor/NoteEditor';
 
 const FileViewer = require('react-native-file-viewer').default;
 const React = require('react');
-const { Keyboard, View, TextInput, StyleSheet, Linking, Image, Share } = require('react-native');
+const { Keyboard, View, TextInput, StyleSheet, Linking, Share } = require('react-native');
 import { Platform, PermissionsAndroid } from 'react-native';
 const { connect } = require('react-redux');
 // const { MarkdownEditor } = require('@joplin/lib/../MarkdownEditor/index.js');
@@ -39,7 +39,7 @@ const DialogBox = require('react-native-dialogbox').default;
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import shared from '@joplin/lib/components/shared/note-screen-shared';
 import { ImagePickerResponse, launchImageLibrary } from 'react-native-image-picker';
-import ImageSize from 'react-native-image-size';
+import * as ImageSize from 'react-native-image-size';
 import SelectDateTimeDialog from '../SelectDateTimeDialog';
 import ShareExtension from '../../utils/ShareExtension.js';
 import CameraView from '../CameraView';
@@ -584,7 +584,17 @@ class NoteScreenComponent extends BaseScreenComponent {
 	}
 
 	public async imageDimensions(uri: string) {
-		return await ImageSize.getSize(uri);
+		reg.logger().info('getSize() start');
+		return new Promise((resolve, reject) => {
+			ImageSize.getSize(uri).then((size: { width: any; height: any; }) => {
+				reg.logger().info('getSize() done', size);
+				resolve({ width: size.width, height: size.height });
+			}).catch((error: any) => {
+				reg.logger().info('getSize() error');
+				reject(error);
+			}
+			);
+		});
 	}
 
 	public async resizeImage(localFilePath: string, targetPath: string, mimeType: string) {
