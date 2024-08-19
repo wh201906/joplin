@@ -6353,6 +6353,7 @@ __metadata:
     react-native-fs: 2.20.0
     react-native-get-random-values: 1.9.0
     react-native-image-picker: 5.7.0
+    react-native-image-size: ^1.1.6
     react-native-localize: 3.0.2
     react-native-modal-datetime-picker: 17.1.0
     react-native-paper: 5.10.6
@@ -34815,6 +34816,13 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 170cbda1c405b49ca8434bbe364a54406be3dbcc953ca6e4b40565556004cbddeca34a1091a1dbad60cd1dc06c8777fdd25ab2489447199902c39ec09aa169e1
+  languageName: node
+  linkType: hard
+
+"react-native-image-size@npm:^1.1.6":
+  version: 1.1.6
+  resolution: "react-native-image-size@npm:1.1.6"
+  checksum: 5d30aecddecec4b77b07bc3d29a857e06e704887b077aef33e4511330df678a71a214cc3e625a13c0f4faf40b91bfab6bf10815cc9b7bc430711368e20458ddf
   languageName: node
   linkType: hard
 

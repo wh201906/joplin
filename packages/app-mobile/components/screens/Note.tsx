@@ -39,6 +39,7 @@ const DialogBox = require('react-native-dialogbox').default;
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import shared from '@joplin/lib/components/shared/note-screen-shared';
 import { ImagePickerResponse, launchImageLibrary } from 'react-native-image-picker';
+import ImageSize from 'react-native-image-size';
 import SelectDateTimeDialog from '../SelectDateTimeDialog';
 import ShareExtension from '../../utils/ShareExtension.js';
 import CameraView from '../CameraView';
@@ -583,17 +584,7 @@ class NoteScreenComponent extends BaseScreenComponent {
 	}
 
 	public async imageDimensions(uri: string) {
-		return new Promise((resolve, reject) => {
-			Image.getSize(
-				uri,
-				(width: number, height: number) => {
-					resolve({ width: width, height: height });
-				},
-				(error: any) => {
-					reject(error);
-				},
-			);
-		});
+		return await ImageSize.getSize(uri);
 	}
 
 	public async resizeImage(localFilePath: string, targetPath: string, mimeType: string) {
