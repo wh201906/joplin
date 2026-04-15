@@ -756,7 +756,19 @@ function shimInit(options: ShimInitOptions = null) {
 	};
 
 	shim.waitForFrame = (lastFrameTimestamp: number) => {
-		return Promise.resolve(lastFrameTimestamp);
+		if (Date.now() - lastFrameTimestamp < 200) {
+			return Promise.resolve(lastFrameTimestamp);
+		}
+		return new Promise<number>((resolve) => {
+			const finishCallback = () => {
+				resolve(Date.now());
+			};
+			if (typeof requestAnimationFrame === 'function') {
+				requestAnimationFrame(finishCallback);
+			} else {
+				setTimeout(finishCallback, 0);
+			}
+		});
 	};
 
 	shim.appVersion = () => {
