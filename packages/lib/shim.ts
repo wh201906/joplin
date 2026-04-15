@@ -445,7 +445,7 @@ const shim = {
 	},
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Old code before rule was applied
-	waitForFrame: (): any => {
+	waitForFrame: (_lastFrameTimestamp: number): Promise<number> => {
 		throw new Error('Not implemented: waitForFrame');
 	},
 

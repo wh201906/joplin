@@ -67,10 +67,13 @@ const shimInitShared = () => {
 
 	shim.showMessageBox = makeShowMessageBox(null);
 
-	shim.waitForFrame = () => {
-		return new Promise<void>((resolve) => {
+	shim.waitForFrame = (lastFrameTimestamp: number) => {
+		if (Date.now() - lastFrameTimestamp < 200) {
+			return Promise.resolve(lastFrameTimestamp);
+		}
+		return new Promise<number>((resolve) => {
 			requestAnimationFrame(() => {
-				resolve();
+				resolve(Date.now());
 			});
 		});
 	};

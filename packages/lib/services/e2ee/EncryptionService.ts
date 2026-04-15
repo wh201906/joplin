@@ -600,6 +600,7 @@ export default class EncryptionService {
 		await destination.append(this.encodeHeader_(header));
 
 		let doneSize = 0;
+		let lastFrameTimestamp = Date.now();
 
 		while (true) {
 			const block = await source.read(chunkSize);
@@ -610,7 +611,8 @@ export default class EncryptionService {
 
 			// Wait for a frame so that the app remains responsive in mobile.
 			// https://corbt.com/posts/2015/12/22/breaking-up-heavy-processing-in-react-native.html
-			const [, encrypted] = await Promise.all([shim.waitForFrame(), this.encrypt(method, masterKeyPlainText, block)]);
+			const [frameTimestamp, encrypted] = await Promise.all([shim.waitForFrame(lastFrameTimestamp), this.encrypt(method, masterKeyPlainText, block)]);
+			lastFrameTimestamp = frameTimestamp;
 
 			await crypto.increaseNonce(this.encryptionNonce_);
 
@@ -628,6 +630,7 @@ export default class EncryptionService {
 		const masterKeyPlainText = (await this.loadedMasterKey(header.masterKeyId)).plainText;
 
 		let doneSize = 0;
+		let lastFrameTimestamp = Date.now();
 
 		while (true) {
 			const lengthHex = await source.read(6);
@@ -639,7 +642,8 @@ export default class EncryptionService {
 			doneSize += length;
 			if (options.onProgress) options.onProgress({ doneSize: doneSize });
 
-			const [, block] = await Promise.all([shim.waitForFrame(), source.read(length)]);
+			const [frameTimestamp, block] = await Promise.all([shim.waitForFrame(lastFrameTimestamp), source.read(length)]);
+			lastFrameTimestamp = frameTimestamp;
 
 			const plainText = await this.decrypt(header.encryptionMethod, masterKeyPlainText, block);
 			await destination.append(plainText);

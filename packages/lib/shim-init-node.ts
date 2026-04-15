@@ -755,7 +755,9 @@ function shimInit(options: ShimInitOptions = null) {
 		return shim.electronBridge().openItem(filepath);
 	};
 
-	shim.waitForFrame = () => {};
+	shim.waitForFrame = (lastFrameTimestamp: number) => {
+		return Promise.resolve(lastFrameTimestamp);
+	};
 
 	shim.appVersion = () => {
 		if (appVersion) return appVersion();
